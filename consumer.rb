@@ -1,6 +1,9 @@
 require 'bunny'
 
-conn = Bunny.new
+host = ARGV[0] || 'localhost'
+puts "host: #{host}"
+
+conn = Bunny.new(host: host)
 conn.start
 
 ch = conn.create_channel

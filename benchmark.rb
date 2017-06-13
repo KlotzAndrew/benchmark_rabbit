@@ -1,7 +1,10 @@
 require 'benchmark'
 require 'bunny'
 
-connection = Bunny.new(host: 'localhost')
+host = ARGV[0] || 'localhost'
+puts "host: #{host}"
+
+connection = Bunny.new(host: host)
 connection.start
 
 channel = connection.create_channel

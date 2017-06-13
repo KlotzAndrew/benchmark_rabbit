@@ -9,27 +9,28 @@ connection.start
 
 channel = connection.create_channel
 
+confirm_channel = connection.create_channel
+confirm_channel.confirm_select
+confirm_channel.using_publisher_confirms?
+
 def publish(channel, i)
   channel.default_exchange.publish(i.to_s, routing_key: 'benchmark')
 end
 
-counter = 10_000
-no_confirms = Benchmark.measure do
-  counter.times { |i| publish(channel, i) }
+n = 100
+Benchmark.bm do |x|
+  x.report('non-confirm:') do
+    n.times do |i|
+      publish(channel, i)
+    end
+  end
+  x.report('yes-confirm:') do
+    n.times do |i|
+      publish(confirm_channel, i + n)
+      confirm_channel.wait_for_confirms
+    end
+  end
 end
-
-channel.confirm_select
-channel.using_publisher_confirms?
-
-confirms = Benchmark.measure do
-  counter.times { |i| publish(channel, i + counter) }
-  channel.wait_for_confirms
-end
-
-puts "non_confirms: #{no_confirms}"
-puts "yes_confirms: #{confirms}"
 
 channel.close
 connection.close
-
-exit
